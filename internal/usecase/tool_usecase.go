@@ -20,3 +20,7 @@ func (u *ToolUsecase) GetAllTools() ([]domain.Tool, error) {
 func (u *ToolUsecase) GetTools(search string, limit int, offset int) ([]domain.Tool, error) {
 	return u.repo.GetTools(search, limit, offset)
 }
+
+func (u *ToolUsecase) GetToolsCursor(cursorID int, limit int) ([]domain.Tool, error) {
+	return u.repo.GetToolsCursor(cursorID, limit)
+}

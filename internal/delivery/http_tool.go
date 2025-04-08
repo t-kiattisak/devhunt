@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"devhunt/internal/usecase"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,6 +16,7 @@ func NewToolHandler(app *fiber.App, usecase *usecase.ToolUsecase) {
 	handler := &ToolHandler{usecase: usecase}
 	app.Get("/tools", handler.GetTools)
 	app.Get("/all-tools", handler.GetAllTools)
+	app.Get("/tools/cursor", handler.GetToolsCursor)
 }
 
 func (h *ToolHandler) GetAllTools(c *fiber.Ctx) error {
@@ -41,4 +43,17 @@ func (h *ToolHandler) GetTools(c *fiber.Ctx) error {
 
 	return c.JSON(tools)
 
+}
+
+func (h *ToolHandler) GetToolsCursor(c *fiber.Ctx) error {
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	cursor, _ := strconv.Atoi(c.Query("cursor", "0"))
+	tools, err := h.usecase.GetToolsCursor(cursor, limit)
+	fmt.Print(err)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to get tools",
+		})
+	}
+	return c.JSON(tools)
 }

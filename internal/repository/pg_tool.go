@@ -11,6 +11,7 @@ import (
 type ToolRepository interface {
 	GetAllTools() ([]domain.Tool, error)
 	GetTools(search string, limit, offset int) ([]domain.Tool, error)
+	GetToolsCursor(cursorID int, limit int) ([]domain.Tool, error)
 }
 
 type toolRepository struct {
@@ -65,5 +66,32 @@ func (r *toolRepository) GetTools(search string, limit, offset int) ([]domain.To
 		tools = append(tools, tool)
 	}
 
+	return tools, nil
+}
+
+func (r *toolRepository) GetToolsCursor(cursorID int, limit int) ([]domain.Tool, error) {
+	ctx := context.Background()
+	query := `
+		SELECT id, name, description
+		FROM tools
+		WHERE ($1 = 0 OR id < $1)
+		ORDER BY id DESC
+		LIMIT $2
+	`
+	rows, err := r.DB.Query(ctx, query, cursorID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tools []domain.Tool
+
+	for rows.Next() {
+		var tool domain.Tool
+		if err := rows.Scan(&tool.ID, &tool.Name, &tool.Description); err != nil {
+			return nil, err
+		}
+		tools = append(tools, tool)
+	}
 	return tools, nil
 }
