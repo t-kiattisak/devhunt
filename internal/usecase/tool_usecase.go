@@ -28,3 +28,29 @@ func (u *ToolUsecase) GetToolsCursor(cursorID int, limit int) ([]domain.Tool, er
 func (u *ToolUsecase) GetToolsCursorWithSearch(search string, cursorID int, limit int) ([]domain.Tool, error) {
 	return u.repo.GetToolsCursorWithSearch(search, cursorID, limit)
 }
+
+type ToolDetail struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	VoteCount   int    `json:"vote_count"`
+}
+
+func (u *ToolUsecase) GetToolByID(toolID int) (*ToolDetail, error) {
+	tool, err := u.repo.GetToolByID(toolID)
+	if err != nil {
+		return nil, err
+	}
+
+	voteCount, err := u.repo.CountVotes(toolID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ToolDetail{
+		ID:          tool.ID,
+		Name:        tool.Name,
+		Description: tool.Description,
+		VoteCount:   voteCount,
+	}, nil
+}

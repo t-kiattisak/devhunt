@@ -13,6 +13,8 @@ type ToolRepository interface {
 	GetTools(search string, limit, offset int) ([]domain.Tool, error)
 	GetToolsCursor(cursorID int, limit int) ([]domain.Tool, error)
 	GetToolsCursorWithSearch(search string, cursorID int, limit int) ([]domain.Tool, error)
+	GetToolByID(toolID int) (*domain.Tool, error)
+	CountVotes(toolID int) (int, error)
 }
 
 type toolRepository struct {
@@ -127,4 +129,33 @@ func (r *toolRepository) GetToolsCursorWithSearch(search string, cursorID int, l
 		tools = append(tools, tool)
 	}
 	return tools, nil
+}
+
+// GetToolByID implements ToolRepository.
+func (r *toolRepository) GetToolByID(toolID int) (*domain.Tool, error) {
+	ctx := context.Background()
+
+	query := `
+		SELECT id, name, description
+		FROM tools
+		WHERE id $1
+	`
+	row := r.DB.QueryRow(ctx, query, toolID)
+	var tool domain.Tool
+	err := row.Scan(&tool.ID, &tool.Name, &tool.Description)
+	if err != nil {
+		return nil, err
+	}
+	return &tool, nil
+}
+
+func (r *toolRepository) CountVotes(toolID int) (int, error) {
+	ctx := context.Background()
+
+	query := `SELECT COUNT(*) FROM tool_votes WHERE tool_id = $1`
+	row := r.DB.QueryRow(ctx, query, toolID)
+
+	var count int
+	err := row.Scan(&count)
+	return count, err
 }

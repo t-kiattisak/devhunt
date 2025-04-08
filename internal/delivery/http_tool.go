@@ -23,6 +23,7 @@ func NewToolHandler(app *fiber.App, usecase *usecase.ToolUsecase) {
 	app.Get("/all-tools", handler.GetAllTools)
 	app.Get("/tools/cursor", handler.GetToolsCursor)
 	app.Get("/tools/cursor-search", handler.GetToolsCursor)
+	app.Get("/tools/:id", handler.GetToolByID)
 }
 
 func (h *ToolHandler) GetAllTools(c *fiber.Ctx) error {
@@ -91,4 +92,18 @@ func (h *ToolHandler) GetToolsCursorWithSearch(c *fiber.Ctx) error {
 	_ = infrastructure.Redis.Set(ctx, cacheKey, bytes, time.Minute*5).Err()
 
 	return c.JSON(tools)
+}
+
+func (h *ToolHandler) GetToolByID(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	toolID, _ := strconv.Atoi(idParam)
+
+	tool, err := h.usecase.GetToolByID(toolID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "tool not found",
+		})
+	}
+
+	return c.JSON(tool)
 }
