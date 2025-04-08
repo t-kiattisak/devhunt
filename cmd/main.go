@@ -29,5 +29,9 @@ func main() {
 	app := fiber.New()
 	delivery.NewToolHandler(app, toolUsecase)
 
+	voteRepo := repository.NewVoteRepository(db)
+	voteUsecase := usecase.NewVoteUsecase(voteRepo)
+	delivery.NewVoteHandler(app, voteUsecase)
+
 	app.Listen(":3000")
 }
