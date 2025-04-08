@@ -1,9 +1,14 @@
 package delivery
 
 import (
+	"context"
+	"devhunt/internal/domain"
+	"devhunt/internal/infrastructure"
 	"devhunt/internal/usecase"
+	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -50,7 +55,7 @@ func (h *ToolHandler) GetToolsCursor(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	cursor, _ := strconv.Atoi(c.Query("cursor", "0"))
 	tools, err := h.usecase.GetToolsCursor(cursor, limit)
-	fmt.Print(err)
+
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to get tools",
@@ -63,6 +68,17 @@ func (h *ToolHandler) GetToolsCursorWithSearch(c *fiber.Ctx) error {
 	search := c.Query("search", "")
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	cursor, _ := strconv.Atoi(c.Query("cursor", "0"))
+	cacheKey := fmt.Sprintf("tools:cursor=%d;limit=%d:search=%s", cursor, limit, search)
+
+	ctx := context.Background()
+	val, err := infrastructure.Redis.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var cached []domain.Tool
+		if err := json.Unmarshal([]byte(val), &cached); err == nil {
+			return c.JSON(cached)
+		}
+	}
+
 	tools, err := h.usecase.GetToolsCursorWithSearch(search, cursor, limit)
 	fmt.Print(err)
 	if err != nil {
@@ -70,5 +86,9 @@ func (h *ToolHandler) GetToolsCursorWithSearch(c *fiber.Ctx) error {
 			"error": "failed to get tools",
 		})
 	}
+
+	bytes, _ := json.Marshal(tools)
+	_ = infrastructure.Redis.Set(ctx, cacheKey, bytes, time.Minute*5).Err()
+
 	return c.JSON(tools)
 }

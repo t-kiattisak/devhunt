@@ -16,7 +16,7 @@ import (
 func main() {
 	config.Load()
 	logger.Init()
-
+	infrastructure.InitRedis()
 	db := infrastructure.NewPostgresDB()
 
 	if os.Getenv("SEED") == "true" {
