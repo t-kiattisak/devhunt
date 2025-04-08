@@ -7,6 +7,8 @@ import (
 	"devhunt/internal/repository"
 	"devhunt/internal/usecase"
 	"devhunt/pkg/logger"
+	"devhunt/pkg/seeder"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,6 +18,10 @@ func main() {
 	logger.Init()
 
 	db := infrastructure.NewPostgresDB()
+
+	if os.Getenv("SEED") == "true" {
+		seeder.SeedTools(db, 10000)
+	}
 
 	toolRepo := repository.NewToolRepository(db)
 	toolUsecase := usecase.NewToolUsecase(toolRepo)

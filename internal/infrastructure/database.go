@@ -49,7 +49,7 @@ func runMigrations(dsn string) error {
 		return err
 	}
 
-	migrationsPath := filepath.Join(wd, "src/infrastructure/migrations")
+	migrationsPath := filepath.Join(wd, "internal/infrastructure/migrations")
 	m, err := migrate.New(
 		"file://"+migrationsPath,
 		dsn,

@@ -16,3 +16,7 @@ func NewToolUsecase(repo repository.ToolRepository) *ToolUsecase {
 func (u *ToolUsecase) GetAllTools() ([]domain.Tool, error) {
 	return u.repo.GetAllTools()
 }
+
+func (u *ToolUsecase) GetTools(search string, limit int, offset int) ([]domain.Tool, error) {
+	return u.repo.GetTools(search, limit, offset)
+}
