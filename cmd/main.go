@@ -33,5 +33,9 @@ func main() {
 	voteUsecase := usecase.NewVoteUsecase(voteRepo)
 	delivery.NewVoteHandler(app, voteUsecase)
 
+	reviewRepo := repository.NewReviewRepository(db)
+	reviewUsecase := usecase.NewReviewUsecase(reviewRepo)
+	delivery.NewReviewHandler(app, reviewUsecase)
+
 	app.Listen(":3000")
 }
