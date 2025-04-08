@@ -24,3 +24,7 @@ func (u *ToolUsecase) GetTools(search string, limit int, offset int) ([]domain.T
 func (u *ToolUsecase) GetToolsCursor(cursorID int, limit int) ([]domain.Tool, error) {
 	return u.repo.GetToolsCursor(cursorID, limit)
 }
+
+func (u *ToolUsecase) GetToolsCursorWithSearch(search string, cursorID int, limit int) ([]domain.Tool, error) {
+	return u.repo.GetToolsCursorWithSearch(search, cursorID, limit)
+}

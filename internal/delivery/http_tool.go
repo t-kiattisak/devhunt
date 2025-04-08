@@ -17,6 +17,7 @@ func NewToolHandler(app *fiber.App, usecase *usecase.ToolUsecase) {
 	app.Get("/tools", handler.GetTools)
 	app.Get("/all-tools", handler.GetAllTools)
 	app.Get("/tools/cursor", handler.GetToolsCursor)
+	app.Get("/tools/cursor-search", handler.GetToolsCursor)
 }
 
 func (h *ToolHandler) GetAllTools(c *fiber.Ctx) error {
@@ -49,6 +50,20 @@ func (h *ToolHandler) GetToolsCursor(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	cursor, _ := strconv.Atoi(c.Query("cursor", "0"))
 	tools, err := h.usecase.GetToolsCursor(cursor, limit)
+	fmt.Print(err)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to get tools",
+		})
+	}
+	return c.JSON(tools)
+}
+
+func (h *ToolHandler) GetToolsCursorWithSearch(c *fiber.Ctx) error {
+	search := c.Query("search", "")
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	cursor, _ := strconv.Atoi(c.Query("cursor", "0"))
+	tools, err := h.usecase.GetToolsCursorWithSearch(search, cursor, limit)
 	fmt.Print(err)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

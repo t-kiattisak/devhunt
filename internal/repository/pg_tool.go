@@ -12,6 +12,7 @@ type ToolRepository interface {
 	GetAllTools() ([]domain.Tool, error)
 	GetTools(search string, limit, offset int) ([]domain.Tool, error)
 	GetToolsCursor(cursorID int, limit int) ([]domain.Tool, error)
+	GetToolsCursorWithSearch(search string, cursorID int, limit int) ([]domain.Tool, error)
 }
 
 type toolRepository struct {
@@ -86,6 +87,38 @@ func (r *toolRepository) GetToolsCursor(cursorID int, limit int) ([]domain.Tool,
 
 	var tools []domain.Tool
 
+	for rows.Next() {
+		var tool domain.Tool
+		if err := rows.Scan(&tool.ID, &tool.Name, &tool.Description); err != nil {
+			return nil, err
+		}
+		tools = append(tools, tool)
+	}
+	return tools, nil
+}
+
+func (r *toolRepository) GetToolsCursorWithSearch(search string, cursorID int, limit int) ([]domain.Tool, error) {
+	ctx := context.Background()
+	query := `
+		SELECT id, name, description
+		FROM tools
+		WHERE ($1 = '' OR name ILINK $1)
+		AND ($2 = 0 OR id < $2)
+		ORDER BY id DESC
+		LIMIT $3
+	`
+	searchParam := "%"
+	if search != "" {
+		searchParam = "%" + search + "%"
+	}
+
+	rows, err := r.DB.Query(ctx, query, searchParam, cursorID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tools []domain.Tool
 	for rows.Next() {
 		var tool domain.Tool
 		if err := rows.Scan(&tool.ID, &tool.Name, &tool.Description); err != nil {
