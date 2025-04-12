@@ -23,6 +23,7 @@ func NewToolHandler(app *fiber.App, usecase *usecase.ToolUsecase) {
 	app.Get("/all-tools", handler.GetAllTools)
 	app.Get("/tools/cursor", handler.GetToolsCursor)
 	app.Get("/tools/cursor-search", handler.GetToolsCursor)
+	app.Get("/tools/top-trending", handler.GetTopTrending)
 	app.Get("/tools/:id", handler.GetToolByID)
 }
 
@@ -107,4 +108,18 @@ func (h *ToolHandler) GetToolByID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(tool)
+}
+
+func (h *ToolHandler) GetTopTrending(c *fiber.Ctx) error {
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	by := c.Query("by", "votes")
+	tools, err := h.usecase.GetTopTrending(by, limit)
+	fmt.Print(err)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to get trending tools",
+		})
+	}
+
+	return c.JSON(tools)
 }

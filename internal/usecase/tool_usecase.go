@@ -61,3 +61,7 @@ func (u *ToolUsecase) GetToolByID(toolID int) (*ToolDetail, error) {
 		AvgRating:   avgRating,
 	}, nil
 }
+
+func (u *ToolUsecase) GetTopTrending(by string, limit int) ([]domain.Tool, error) {
+	return u.repo.GetTopTrending(by, limit)
+}

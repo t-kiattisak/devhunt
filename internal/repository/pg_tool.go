@@ -17,6 +17,7 @@ type ToolRepository interface {
 	CountVotes(toolID int) (int, error)
 	CountReviews(toolID int) (int, error)
 	AvgRating(toolID int) (float64, error)
+	GetTopTrending(by string, limit int) ([]domain.Tool, error)
 }
 
 type toolRepository struct {
@@ -176,4 +177,56 @@ func (r *toolRepository) AvgRating(toolID int) (float64, error) {
 	var avg float64
 	err := row.Scan(&avg)
 	return avg, err
+}
+
+// GetTopTrending implements ToolRepository.
+func (r *toolRepository) GetTopTrending(by string, limit int) ([]domain.Tool, error) {
+	ctx := context.Background()
+
+	var query string
+	switch by {
+	case "rating":
+		query = `
+			SELECT t.id, t.name, t.description
+			FROM tools t
+			LEFT JOIN tool_reviews r ON t.id = r.tool_id
+			GROUP BY t.id
+			ORDER BY COALESCE(AVG(r.rating), 0) DESC
+			LIMIT $1
+		`
+	case "reviews":
+		query = `
+			SELECT t.id, t.name, t.description
+			FROM tools t
+			LEFT JOIN tool_reviews r ON t.id = r.tool_id
+			GROUP BY t.id
+			ORDER By COUNT(r.id) DESC
+			LIMIT $1
+		`
+	default:
+		query = `
+			SELECT t.id, t.name, t.description
+			FROM tools t
+			LEFT JOIN tool_votes v ON t.id = v.tool_id
+			GROUP BY t.id
+			ORDER BY COUNT(v.id) DESC
+			LIMIT $1
+		`
+	}
+
+	rows, err := r.DB.Query(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tools []domain.Tool
+	for rows.Next() {
+		var tool domain.Tool
+		if err := rows.Scan(&tool.ID, &tool.Name, &tool.Description); err != nil {
+			return nil, err
+		}
+		tools = append(tools, tool)
+	}
+	return tools, nil
 }
