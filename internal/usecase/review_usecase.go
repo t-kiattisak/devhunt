@@ -31,6 +31,8 @@ func (u *ReviewUsecase) CreateReview(toolID int, userID string, rating int, comm
 		fmt.Sprintf("tool:%d", toolID),
 		fmt.Sprintf("rating:tool:%d", toolID),
 		fmt.Sprintf("reviews:tool:%d", toolID),
+		"top-trending:limit=10:by=votes",
+		"top-trending:limit=5:by=votes",
 	}
 	for _, key := range cacheKeys {
 		_ = infrastructure.Redis.Del(ctx, key).Err()

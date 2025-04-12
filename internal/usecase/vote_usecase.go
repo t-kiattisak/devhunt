@@ -26,6 +26,9 @@ func (u *VoteUsecase) Vote(toolID int, userID string) error {
 	cacheKeys := []string{
 		fmt.Sprintf("tool:%d", toolID),
 		fmt.Sprintf("votes:tool:%d", toolID),
+		fmt.Sprintf("votes:tool:%d", toolID),
+		"top-trending:limit=10:by=votes",
+		"top-trending:limit=5:by=votes",
 	}
 
 	for _, key := range cacheKeys {

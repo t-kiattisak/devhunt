@@ -113,6 +113,18 @@ func (h *ToolHandler) GetToolByID(c *fiber.Ctx) error {
 func (h *ToolHandler) GetTopTrending(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	by := c.Query("by", "votes")
+
+	cacheKey := fmt.Sprintf("top-trending:limit=%d:by=%s", limit, by)
+
+	ctx := context.Background()
+	val, err := infrastructure.Redis.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var cached []domain.Tool
+		if err := json.Unmarshal([]byte(val), &cached); err == nil {
+			return c.JSON(cached)
+		}
+	}
+
 	tools, err := h.usecase.GetTopTrending(by, limit)
 	fmt.Print(err)
 	if err != nil {
@@ -121,5 +133,7 @@ func (h *ToolHandler) GetTopTrending(c *fiber.Ctx) error {
 		})
 	}
 
+	bytes, _ := json.Marshal(tools)
+	_ = infrastructure.Redis.Set(ctx, cacheKey, bytes, time.Minute*5).Err()
 	return c.JSON(tools)
 }
