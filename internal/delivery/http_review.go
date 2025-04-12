@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"devhunt/internal/usecase"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +15,7 @@ type ReviewHandler struct {
 func NewReviewHandler(app *fiber.App, u *usecase.ReviewUsecase) {
 	handler := &ReviewHandler{usecase: u}
 	app.Post("/tools/:id/reviews", handler.CreateReview)
+	app.Get("/tools/:id/reviews", handler.GetReviews)
 }
 
 type reviewRequest struct {
@@ -37,4 +39,19 @@ func (h *ReviewHandler) CreateReview(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
+}
+
+func (h *ReviewHandler) GetReviews(c *fiber.Ctx) error {
+	toolID, _ := strconv.Atoi(c.Params("id"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset, _ := strconv.Atoi(c.Query("offset", "0"))
+
+	reviews, err := h.usecase.GetReviews(toolID, limit, offset)
+	fmt.Print(err)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to get reviews",
+		})
+	}
+	return c.JSON(reviews)
 }

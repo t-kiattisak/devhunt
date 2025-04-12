@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"devhunt/internal/domain"
 	"devhunt/internal/infrastructure"
 	"devhunt/internal/repository"
 	"fmt"
@@ -36,4 +37,8 @@ func (u *ReviewUsecase) CreateReview(toolID int, userID string, rating int, comm
 	}
 
 	return nil
+}
+
+func (u *ReviewUsecase) GetReviews(toolID, limit, offset int) ([]domain.Review, error) {
+	return u.repo.GetReviews(toolID, limit, offset)
 }
