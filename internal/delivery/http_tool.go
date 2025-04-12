@@ -99,6 +99,7 @@ func (h *ToolHandler) GetToolByID(c *fiber.Ctx) error {
 	toolID, _ := strconv.Atoi(idParam)
 
 	tool, err := h.usecase.GetToolByID(toolID)
+	fmt.Print(err)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "tool not found",

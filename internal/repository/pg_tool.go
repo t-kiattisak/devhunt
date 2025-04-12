@@ -15,6 +15,8 @@ type ToolRepository interface {
 	GetToolsCursorWithSearch(search string, cursorID int, limit int) ([]domain.Tool, error)
 	GetToolByID(toolID int) (*domain.Tool, error)
 	CountVotes(toolID int) (int, error)
+	CountReviews(toolID int) (int, error)
+	AvgRating(toolID int) (float64, error)
 }
 
 type toolRepository struct {
@@ -138,7 +140,7 @@ func (r *toolRepository) GetToolByID(toolID int) (*domain.Tool, error) {
 	query := `
 		SELECT id, name, description
 		FROM tools
-		WHERE id $1
+		WHERE (id = $1)
 	`
 	row := r.DB.QueryRow(ctx, query, toolID)
 	var tool domain.Tool
@@ -158,4 +160,20 @@ func (r *toolRepository) CountVotes(toolID int) (int, error) {
 	var count int
 	err := row.Scan(&count)
 	return count, err
+}
+
+func (r *toolRepository) CountReviews(toolID int) (int, error) {
+	ctx := context.Background()
+	row := r.DB.QueryRow(ctx, `SELECT COUNT(*) FROM tool_review WHERE tool_id = $1`, toolID)
+	var count int
+	err := row.Scan(count)
+	return count, err
+}
+
+func (r *toolRepository) AvgRating(toolID int) (float64, error) {
+	ctx := context.Background()
+	row := r.DB.QueryRow(ctx, `SELECT COALESCE(AVG(rating), 0)  FROM tool_reviews WHERE tool_id = $1`, toolID)
+	var avg float64
+	err := row.Scan(&avg)
+	return avg, err
 }

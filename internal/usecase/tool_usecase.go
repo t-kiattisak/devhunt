@@ -30,10 +30,12 @@ func (u *ToolUsecase) GetToolsCursorWithSearch(search string, cursorID int, limi
 }
 
 type ToolDetail struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	VoteCount   int    `json:"vote_count"`
+	ID          int     `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	VoteCount   int     `json:"vote_count"`
+	ReviewCount int     `json:"review_count"`
+	AvgRating   float64 `json:"avg_rating"`
 }
 
 func (u *ToolUsecase) GetToolByID(toolID int) (*ToolDetail, error) {
@@ -47,10 +49,15 @@ func (u *ToolUsecase) GetToolByID(toolID int) (*ToolDetail, error) {
 		return nil, err
 	}
 
+	reviewCount, _ := u.repo.CountReviews(toolID)
+	avgRating, _ := u.repo.AvgRating(toolID)
+
 	return &ToolDetail{
 		ID:          tool.ID,
 		Name:        tool.Name,
 		Description: tool.Description,
 		VoteCount:   voteCount,
+		ReviewCount: reviewCount,
+		AvgRating:   avgRating,
 	}, nil
 }
