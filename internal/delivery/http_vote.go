@@ -11,7 +11,7 @@ type VoteHandler struct {
 	usecase *usecase.VoteUsecase
 }
 
-func NewVoteHandler(app *fiber.App, u *usecase.VoteUsecase) {
+func NewVoteHandler(app fiber.Router, u *usecase.VoteUsecase) {
 	handler := &VoteHandler{usecase: u}
 	app.Post("/tools/:id/vote", handler.Vote)
 }

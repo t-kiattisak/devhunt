@@ -17,7 +17,7 @@ type ToolHandler struct {
 	usecase *usecase.ToolUsecase
 }
 
-func NewToolHandler(app *fiber.App, usecase *usecase.ToolUsecase) {
+func NewToolHandler(app fiber.Router, usecase *usecase.ToolUsecase) {
 	handler := &ToolHandler{usecase: usecase}
 	app.Get("/tools", handler.GetTools)
 	app.Get("/all-tools", handler.GetAllTools)

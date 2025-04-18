@@ -12,7 +12,7 @@ type ReviewHandler struct {
 	usecase *usecase.ReviewUsecase
 }
 
-func NewReviewHandler(app *fiber.App, u *usecase.ReviewUsecase) {
+func NewReviewHandler(app fiber.Router, u *usecase.ReviewUsecase) {
 	handler := &ReviewHandler{usecase: u}
 	app.Post("/tools/:id/reviews", handler.CreateReview)
 	app.Get("/tools/:id/reviews", handler.GetReviews)

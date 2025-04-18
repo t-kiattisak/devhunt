@@ -4,6 +4,7 @@ import (
 	config "devhunt/configs"
 	"devhunt/internal/delivery"
 	"devhunt/internal/infrastructure"
+	"devhunt/internal/middleware"
 	"devhunt/internal/repository"
 	"devhunt/internal/usecase"
 	"devhunt/pkg/logger"
@@ -27,15 +28,20 @@ func main() {
 	toolUsecase := usecase.NewToolUsecase(toolRepo)
 
 	app := fiber.New()
-	delivery.NewToolHandler(app, toolUsecase)
+	delivery.NewAuthHandler(app)
+
+	protected := app.Group("/v1", middleware.JWTAuth())
+
+	delivery.NewAuthHandler(app)
+	delivery.NewToolHandler(protected, toolUsecase)
 
 	voteRepo := repository.NewVoteRepository(db)
 	voteUsecase := usecase.NewVoteUsecase(voteRepo)
-	delivery.NewVoteHandler(app, voteUsecase)
+	delivery.NewVoteHandler(protected, voteUsecase)
 
 	reviewRepo := repository.NewReviewRepository(db)
 	reviewUsecase := usecase.NewReviewUsecase(reviewRepo)
-	delivery.NewReviewHandler(app, reviewUsecase)
+	delivery.NewReviewHandler(protected, reviewUsecase)
 
 	app.Listen(":3000")
 }
